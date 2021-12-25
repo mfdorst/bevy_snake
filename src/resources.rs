@@ -1,7 +1,12 @@
 use bevy::prelude::*;
 
-pub struct SnakeHead;
 pub struct Materials {
     pub head_material: Handle<ColorMaterial>,
     pub food_material: Handle<ColorMaterial>,
+}
+
+#[derive(SystemLabel, Clone, Hash, Debug, Eq, PartialEq)]
+pub enum Snake {
+    Input,
+    Movement,
 }
