@@ -1,6 +1,10 @@
 use bevy::prelude::*;
 
-use crate::resources::{Materials, SnakeHead};
+use crate::{
+    components::{Position, Size},
+    consts::*,
+    resources::{Materials, SnakeHead},
+};
 
 pub struct SnakePlugin;
 
@@ -18,30 +22,24 @@ fn spawn_snake(mut commands: Commands, materials: Res<Materials>) {
             sprite: Sprite::new(Vec2::new(10.0, 10.0)),
             ..Default::default()
         })
-        .insert(SnakeHead);
+        .insert(SnakeHead)
+        .insert(Position::new(STARTING_POSITION_X, STARTING_POSITION_Y))
+        .insert(Size::square(SNAKE_HEAD_SIZE));
 }
 
-fn snake_move(key: Res<Input<KeyCode>>, mut query: Query<(&SnakeHead, &mut Transform)>) {
-    for (_, mut xform) in query.iter_mut() {
-        let left = key.pressed(KeyCode::Left);
-        let right = key.pressed(KeyCode::Right);
-        let up = key.pressed(KeyCode::Up);
-        let down = key.pressed(KeyCode::Down);
-        let x = if left && !right {
-            -2.0
-        } else if right && !left {
-            2.0
-        } else {
-            0.0
-        };
-        let y = if down && !up {
-            -2.0
-        } else if up && !down {
-            2.0
-        } else {
-            0.0
-        };
-        xform.translation.x += x;
-        xform.translation.y += y;
+fn snake_move(key: Res<Input<KeyCode>>, mut query: Query<(&SnakeHead, &mut Position)>) {
+    for (_, mut pos) in query.iter_mut() {
+        if key.pressed(KeyCode::Left) {
+            pos.x -= 1;
+        }
+        if key.pressed(KeyCode::Right) {
+            pos.x += 1;
+        }
+        if key.pressed(KeyCode::Up) {
+            pos.y += 1;
+        }
+        if key.pressed(KeyCode::Down) {
+            pos.y -= 1;
+        }
     }
 }
