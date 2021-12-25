@@ -5,31 +5,39 @@ mod snake;
 
 use bevy::prelude::*;
 use components::{Position, Size};
-use consts::{ARENA_HEIGHT, ARENA_WIDTH};
+use consts::*;
 use resources::Materials;
 use snake::SnakePlugin;
 
 fn main() {
     let mut app = App::build();
-    app.insert_resource(Msaa { samples: 4 })
-        .add_plugins(DefaultPlugins);
+    app.insert_resource(WindowDescriptor {
+        title: "Snake!".to_owned(),
+        width: WINDOW_WIDTH,
+        height: WINDOW_HEIGHT,
+        ..Default::default()
+    })
+    .insert_resource(ClearColor(CLEAR_COLOR))
+    .add_startup_system(setup.system())
+    .add_plugin(SnakePlugin)
+    .add_system_set_to_stage(
+        CoreStage::PostUpdate,
+        SystemSet::new()
+            .with_system(size_scaling.system())
+            .with_system(position_translation.system()),
+    )
+    .insert_resource(Msaa { samples: 4 })
+    .add_plugins(DefaultPlugins);
     #[cfg(target_arch = "wasm32")]
     app.add_plugin(bevy_webgl2::WebGL2Plugin);
-    app.add_startup_system(setup.system())
-        .add_plugin(SnakePlugin)
-        .add_system_set_to_stage(
-            CoreStage::PostUpdate,
-            SystemSet::new()
-                .with_system(size_scaling.system())
-                .with_system(position_translation.system()),
-        )
-        .run();
+    app.run();
 }
 
 fn setup(mut commands: Commands, mut color_materials: ResMut<Assets<ColorMaterial>>) {
     commands.spawn_bundle(OrthographicCameraBundle::new_2d());
+    let handle = color_materials.add(HEAD_COLOR.into());
     commands.insert_resource(Materials {
-        head_material: color_materials.add(Color::rgb(0.7, 0.7, 0.7).into()),
+        head_material: handle,
     })
 }
 
