@@ -1,7 +1,7 @@
 use bevy::{core::FixedTimestep, prelude::*};
 
 use crate::{
-    components::{Direction, Position, Size, SnakeHead},
+    components::{Direction, HeadDirection, Position, Size, SnakeHead},
     consts::*,
     resources::{Materials, Snake},
 };
@@ -33,12 +33,15 @@ fn spawn_snake(mut commands: Commands, materials: Res<Materials>) {
             ..Default::default()
         })
         .insert(SnakeHead)
-        .insert(Direction::Right)
+        .insert(HeadDirection {
+            current: Direction::Right,
+            next: Direction::Right,
+        })
         .insert(Position::new(STARTING_POSITION_X, STARTING_POSITION_Y))
         .insert(Size::square(SNAKE_HEAD_SIZE));
 }
 
-fn snake_input(key: Res<Input<KeyCode>>, mut query: Query<(&mut Direction, &SnakeHead)>) {
+fn snake_input(key: Res<Input<KeyCode>>, mut query: Query<(&mut HeadDirection, &SnakeHead)>) {
     // There is only one snake head. Get it:
     let (mut direction, _) = query.iter_mut().next().expect("The snake has no head");
     let new_direction = if key.just_pressed(KeyCode::Left) {
@@ -50,21 +53,22 @@ fn snake_input(key: Res<Input<KeyCode>>, mut query: Query<(&mut Direction, &Snak
     } else if key.just_pressed(KeyCode::Down) {
         Direction::Down
     } else {
-        *direction
+        direction.next
     };
-    if new_direction != direction.opposite() {
-        *direction = new_direction;
+    if new_direction != direction.current.opposite() {
+        direction.next = new_direction;
     }
 }
 
-fn snake_move(mut query: Query<(&SnakeHead, &Direction, &mut Position)>) {
+fn snake_move(mut query: Query<(&SnakeHead, &mut HeadDirection, &mut Position)>) {
     use Direction::*;
-    for (_, direction, mut position) in query.iter_mut() {
-        match direction {
+    for (_, mut direction, mut position) in query.iter_mut() {
+        match direction.next {
             Up => position.y += 1,
             Down => position.y -= 1,
             Right => position.x += 1,
             Left => position.x -= 1,
         }
+        direction.current = direction.next;
     }
 }

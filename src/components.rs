@@ -45,3 +45,8 @@ impl Direction {
         }
     }
 }
+
+pub struct HeadDirection {
+    pub current: Direction,
+    pub next: Direction,
+}
