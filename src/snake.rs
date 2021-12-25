@@ -1,7 +1,7 @@
 use bevy::{core::FixedTimestep, prelude::*};
 
 use crate::{
-    components::{Direction, HeadDirection, Position, Size, SnakeHead},
+    components::{Direction, HeadDirection, Position, Size, SnakeHead, TailSegment},
     consts::*,
     resources::{Materials, Snake},
 };
@@ -34,11 +34,24 @@ fn spawn_snake(mut commands: Commands, materials: Res<Materials>) {
         })
         .insert(SnakeHead)
         .insert(HeadDirection {
-            current: Direction::Right,
-            next: Direction::Right,
+            current: INITIAL_DIRECTION,
+            next: INITIAL_DIRECTION,
         })
         .insert(Position::new(STARTING_POSITION_X, STARTING_POSITION_Y))
         .insert(Size::square(SNAKE_HEAD_SIZE));
+
+    for i in 1..INITIAL_SNAKE_LENGTH {
+        commands
+            .spawn_bundle(SpriteBundle {
+                material: materials.tail_material.clone(),
+                sprite: Sprite::new(Vec2::new(10.0, 10.0)),
+                ..Default::default()
+            })
+            .insert(TailSegment)
+            .insert(INITIAL_DIRECTION)
+            .insert(Position::new(STARTING_POSITION_X - i, STARTING_POSITION_Y))
+            .insert(Size::square(SNAKE_TAIL_SIZE));
+    }
 }
 
 fn snake_input(key: Res<Input<KeyCode>>, mut query: Query<(&mut HeadDirection, &SnakeHead)>) {

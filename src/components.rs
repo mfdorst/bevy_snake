@@ -27,6 +27,8 @@ impl Size {
 pub struct Food;
 pub struct SnakeHead;
 
+pub struct TailSegment;
+
 #[derive(PartialEq, Copy, Clone)]
 pub enum Direction {
     Right,

@@ -37,9 +37,11 @@ fn setup(mut commands: Commands, mut color_materials: ResMut<Assets<ColorMateria
     commands.spawn_bundle(OrthographicCameraBundle::new_2d());
     let head_material = color_materials.add(HEAD_COLOR.into());
     let food_material = color_materials.add(FOOD_COLOR.into());
+    let tail_material = color_materials.add(TAIL_COLOR.into());
     commands.insert_resource(Materials {
         head_material,
         food_material,
+        tail_material,
     })
 }
 
