@@ -23,3 +23,5 @@ impl Size {
         }
     }
 }
+
+pub struct Food;

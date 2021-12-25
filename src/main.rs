@@ -1,5 +1,6 @@
 mod components;
 mod consts;
+mod food;
 mod resources;
 mod snake;
 
@@ -7,7 +8,6 @@ use bevy::prelude::*;
 use components::{Position, Size};
 use consts::*;
 use resources::Materials;
-use snake::SnakePlugin;
 
 fn main() {
     let mut app = App::build();
@@ -19,7 +19,8 @@ fn main() {
     })
     .insert_resource(ClearColor(CLEAR_COLOR))
     .add_startup_system(setup.system())
-    .add_plugin(SnakePlugin)
+    .add_plugin(snake::SnakePlugin)
+    .add_plugin(food::FoodPlugin)
     .add_system_set_to_stage(
         CoreStage::PostUpdate,
         SystemSet::new()
@@ -34,9 +35,11 @@ fn main() {
 
 fn setup(mut commands: Commands, mut color_materials: ResMut<Assets<ColorMaterial>>) {
     commands.spawn_bundle(OrthographicCameraBundle::new_2d());
-    let handle = color_materials.add(HEAD_COLOR.into());
+    let head_material = color_materials.add(HEAD_COLOR.into());
+    let food_material = color_materials.add(FOOD_COLOR.into());
     commands.insert_resource(Materials {
-        head_material: handle,
+        head_material,
+        food_material,
     })
 }
 
