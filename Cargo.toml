@@ -1,5 +1,5 @@
 [package]
-name = "bevy_app"
+name = "bevy_snake"
 version = "0.1.0"
 authors = []
 edition = "2018"
