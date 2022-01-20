@@ -3,7 +3,7 @@ name = "bevy_snake"
 version = "0.1.0"
 authors = []
 edition = "2018"
-repository = "https://github.com/mrk-its/bevy_webgl2_app_template"
+repository = "https://github.com/mfdorst/bevy_snake"
 resolver = "2"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
