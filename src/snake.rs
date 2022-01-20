@@ -1,9 +1,9 @@
 use bevy::{core::FixedTimestep, prelude::*};
 
 use crate::{
-    components::{Direction, HeadDirection, Position, Size, SnakeHead, TailSegment},
+    components::{Direction, Position, Size, TailSegment},
     consts::*,
-    resources::{Materials, Snake},
+    resources::{CurrentDirection, InputDirection, Materials, Snake, SnakeSystem},
 };
 
 pub struct SnakePlugin;
@@ -11,52 +11,60 @@ pub struct SnakePlugin;
 impl Plugin for SnakePlugin {
     fn build(&self, app: &mut AppBuilder) {
         app.add_startup_stage("spawn_snake", SystemStage::single(spawn_snake.system()))
+            .insert_resource(InputDirection(INITIAL_DIRECTION))
+            .insert_resource(CurrentDirection(INITIAL_DIRECTION))
             .add_system(
                 snake_input
                     .system()
-                    .label(Snake::Input)
-                    .before(Snake::Movement),
+                    .label(SnakeSystem::Input)
+                    .before(SnakeSystem::Movement),
             )
             .add_system_set(
                 SystemSet::new()
                     .with_run_criteria(FixedTimestep::step(0.150))
-                    .with_system(snake_move.system().label(Snake::Movement)),
+                    .with_system(snake_move.system().label(SnakeSystem::Movement)),
             );
     }
 }
 
 fn spawn_snake(mut commands: Commands, materials: Res<Materials>) {
-    commands
+    let head = commands
         .spawn_bundle(SpriteBundle {
             material: materials.head_material.clone(),
             sprite: Sprite::new(Vec2::new(10.0, 10.0)),
             ..Default::default()
         })
-        .insert(SnakeHead)
-        .insert(HeadDirection {
-            current: INITIAL_DIRECTION,
-            next: INITIAL_DIRECTION,
-        })
+        .insert(InputDirection(INITIAL_DIRECTION))
         .insert(Position::new(STARTING_POSITION_X, STARTING_POSITION_Y))
-        .insert(Size::square(SNAKE_HEAD_SIZE));
+        .insert(Size::square(SNAKE_HEAD_SIZE))
+        .id();
 
-    for i in 1..INITIAL_SNAKE_LENGTH {
-        commands
-            .spawn_bundle(SpriteBundle {
-                material: materials.tail_material.clone(),
-                sprite: Sprite::new(Vec2::new(10.0, 10.0)),
-                ..Default::default()
-            })
-            .insert(TailSegment)
-            .insert(INITIAL_DIRECTION)
-            .insert(Position::new(STARTING_POSITION_X - i, STARTING_POSITION_Y))
-            .insert(Size::square(SNAKE_TAIL_SIZE));
-    }
+    let tail = (1..INITIAL_SNAKE_LENGTH)
+        .map(|i| {
+            commands
+                .spawn_bundle(SpriteBundle {
+                    material: materials.tail_material.clone(),
+                    sprite: Sprite::new(Vec2::new(10.0, 10.0)),
+                    ..Default::default()
+                })
+                .insert(TailSegment)
+                .insert(INITIAL_DIRECTION)
+                .insert(Position::new(STARTING_POSITION_X - i, STARTING_POSITION_Y))
+                .insert(Size::square(SNAKE_TAIL_SIZE))
+                .id()
+        })
+        .collect();
+    commands.insert_resource(Snake { head, tail });
 }
 
-fn snake_input(key: Res<Input<KeyCode>>, mut query: Query<(&mut HeadDirection, &SnakeHead)>) {
-    // There is only one snake head. Get it:
-    let (mut direction, _) = query.iter_mut().next().expect("The snake has no head");
+fn snake_input(
+    key: Res<Input<KeyCode>>,
+    mut input_direction: ResMut<InputDirection>,
+    current_direction: Res<CurrentDirection>,
+) {
+    // InputDirection is the direction most recently input by the user.
+    // CurrentDirection is the direction that the snake head moved on the most recent timestep.
+    // If the user pressed two buttons in between timesteps, these values may be different.
     let new_direction = if key.just_pressed(KeyCode::Left) {
         Direction::Left
     } else if key.just_pressed(KeyCode::Right) {
@@ -66,22 +74,41 @@ fn snake_input(key: Res<Input<KeyCode>>, mut query: Query<(&mut HeadDirection, &
     } else if key.just_pressed(KeyCode::Down) {
         Direction::Down
     } else {
-        direction.next
+        input_direction.0
     };
-    if new_direction != direction.current.opposite() {
-        direction.next = new_direction;
+    if new_direction != current_direction.0.opposite() {
+        input_direction.0 = new_direction;
     }
 }
 
-fn snake_move(mut query: Query<(&SnakeHead, &mut HeadDirection, &mut Position)>) {
-    use Direction::*;
-    for (_, mut direction, mut position) in query.iter_mut() {
-        match direction.next {
-            Up => position.y += 1,
-            Down => position.y -= 1,
-            Right => position.x += 1,
-            Left => position.x -= 1,
-        }
-        direction.current = direction.next;
+fn snake_move(
+    mut snake: ResMut<Snake>,
+    mut positions: Query<&mut Position>,
+    mut current_direction: ResMut<CurrentDirection>,
+    input_direction: Res<InputDirection>,
+) {
+    // Update the move direction
+    current_direction.0 = input_direction.0;
+    // Move the head in the move direction
+    let mut head_pos = positions
+        .get_mut(snake.head)
+        .expect("Snake head should have a position");
+    let prev_head_pos = head_pos.clone();
+    match current_direction.0 {
+        Direction::Left => head_pos.x -= 1,
+        Direction::Right => head_pos.x += 1,
+        Direction::Up => head_pos.y += 1,
+        Direction::Down => head_pos.y -= 1,
     }
+
+    // Pop off the end of the tail
+    let tail_end = snake.tail.pop_back().expect("The tail should not be empty");
+
+    // Set the position of the tail end to where the head was
+    *positions
+        .get_mut(tail_end)
+        .expect("All snake segments should have positions") = prev_head_pos;
+
+    // Push the tail end to the front of the tail
+    snake.tail.push_front(tail_end);
 }

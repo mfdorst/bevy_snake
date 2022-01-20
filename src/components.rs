@@ -25,7 +25,6 @@ impl Size {
 }
 
 pub struct Food;
-pub struct SnakeHead;
 
 pub struct TailSegment;
 
@@ -46,9 +45,4 @@ impl Direction {
             Self::Down => Self::Up,
         }
     }
-}
-
-pub struct HeadDirection {
-    pub current: Direction,
-    pub next: Direction,
 }
