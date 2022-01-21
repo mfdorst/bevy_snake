@@ -9,6 +9,3 @@ repository = "https://github.com/mfdorst/bevy_snake"
 [dependencies]
 bevy = { version = "0.6.0", features = ["dynamic"] }
 rand = "0.8"
-
-[profile.dev]
-opt-level = 1
