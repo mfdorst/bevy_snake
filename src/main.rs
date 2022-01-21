@@ -16,7 +16,6 @@ fn main() {
             height: WINDOW_HEIGHT,
             ..Default::default()
         })
-        // .insert_resource(ClearColor(CLEAR_COLOR))
         .add_startup_system(setup_camera)
         .add_startup_system(setup_background_color)
         .add_plugin(snake::SnakePlugin)
