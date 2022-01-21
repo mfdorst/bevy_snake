@@ -17,7 +17,8 @@ fn main() {
             ..Default::default()
         })
         // .insert_resource(ClearColor(CLEAR_COLOR))
-        .add_startup_system(setup)
+        .add_startup_system(setup_camera)
+        .add_startup_system(setup_background_color)
         .add_plugin(snake::SnakePlugin)
         .add_plugin(food::FoodPlugin)
         .add_system_set_to_stage(
@@ -30,8 +31,20 @@ fn main() {
         .run();
 }
 
-fn setup(mut commands: Commands) {
+fn setup_camera(mut commands: Commands) {
     commands.spawn_bundle(OrthographicCameraBundle::new_2d());
+}
+
+fn setup_background_color(mut commands: Commands) {
+    commands
+        .spawn_bundle(SpriteBundle {
+            sprite: Sprite {
+                color: CLEAR_COLOR,
+                ..Default::default()
+            },
+            ..Default::default()
+        })
+        .insert(Size::square(ARENA_HEIGHT as f32));
 }
 
 fn size_scaling(windows: Res<Windows>, mut query: Query<(&Size, &mut Sprite)>) {

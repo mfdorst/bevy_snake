@@ -18,7 +18,7 @@ pub const STARTING_POSITION_Y: i32 = 10;
 pub const FOOD_RESPAWN_TIME: f64 = 2.0;
 
 // Colors
-// pub const CLEAR_COLOR: Color = Color::BLACK;
+pub const CLEAR_COLOR: Color = Color::BLACK;
 pub const FOOD_COLOR: Color = Color::rgb(0.4, 0.1, 0.6);
 pub const HEAD_COLOR: Color = Color::rgb(0.7, 0.7, 0.7);
 pub const TAIL_COLOR: Color = Color::rgb(0.6, 0.6, 0.6);
