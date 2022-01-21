@@ -7,7 +7,7 @@ repository = "https://github.com/mfdorst/bevy_snake"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-bevy = "0.6.0"
+bevy = { version = "0.6.0", features = ["dynamic"] }
 rand = "0.8"
 
 [profile.dev]
