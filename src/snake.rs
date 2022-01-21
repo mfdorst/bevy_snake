@@ -3,38 +3,39 @@ use bevy::{core::FixedTimestep, prelude::*};
 use crate::{
     components::{Direction, Position, Size, TailSegment},
     consts::*,
-    resources::{CurrentDirection, InputDirection, Materials, Snake, SnakeSystem},
+    resources::{CurrentDirection, InputDirection, Snake, SnakeSystem},
 };
 
 pub struct SnakePlugin;
 
 impl Plugin for SnakePlugin {
-    fn build(&self, app: &mut AppBuilder) {
-        app.add_startup_stage("spawn_snake", SystemStage::single(spawn_snake.system()))
+    fn build(&self, app: &mut App) {
+        app.add_startup_stage("spawn_snake", SystemStage::single(spawn_snake))
             .insert_resource(InputDirection(INITIAL_DIRECTION))
             .insert_resource(CurrentDirection(INITIAL_DIRECTION))
             .add_system(
                 snake_input
-                    .system()
                     .label(SnakeSystem::Input)
                     .before(SnakeSystem::Movement),
             )
             .add_system_set(
                 SystemSet::new()
                     .with_run_criteria(FixedTimestep::step(0.150))
-                    .with_system(snake_move.system().label(SnakeSystem::Movement)),
+                    .with_system(snake_move.label(SnakeSystem::Movement)),
             );
     }
 }
 
-fn spawn_snake(mut commands: Commands, materials: Res<Materials>) {
+fn spawn_snake(mut commands: Commands) {
     let head = commands
         .spawn_bundle(SpriteBundle {
-            material: materials.head_material.clone(),
-            sprite: Sprite::new(Vec2::new(10.0, 10.0)),
+            sprite: Sprite {
+                color: HEAD_COLOR,
+                custom_size: Some(Vec2::new(10.0, 10.0)),
+                ..Default::default()
+            },
             ..Default::default()
         })
-        .insert(InputDirection(INITIAL_DIRECTION))
         .insert(Position::new(STARTING_POSITION_X, STARTING_POSITION_Y))
         .insert(Size::square(SNAKE_HEAD_SIZE))
         .id();
@@ -43,8 +44,11 @@ fn spawn_snake(mut commands: Commands, materials: Res<Materials>) {
         .map(|i| {
             commands
                 .spawn_bundle(SpriteBundle {
-                    material: materials.tail_material.clone(),
-                    sprite: Sprite::new(Vec2::new(10.0, 10.0)),
+                    sprite: Sprite {
+                        color: TAIL_COLOR,
+                        custom_size: Some(Vec2::new(10.0, 10.0)),
+                        ..Default::default()
+                    },
                     ..Default::default()
                 })
                 .insert(TailSegment)

@@ -7,51 +7,40 @@ mod snake;
 use bevy::prelude::*;
 use components::{Position, Size};
 use consts::*;
-use resources::Materials;
 
 fn main() {
-    let mut app = App::build();
-    app.insert_resource(WindowDescriptor {
-        title: "Snake!".to_owned(),
-        width: WINDOW_WIDTH,
-        height: WINDOW_HEIGHT,
-        ..Default::default()
-    })
-    .insert_resource(ClearColor(CLEAR_COLOR))
-    .add_startup_system(setup.system())
-    .add_plugin(snake::SnakePlugin)
-    .add_plugin(food::FoodPlugin)
-    .add_system_set_to_stage(
-        CoreStage::PostUpdate,
-        SystemSet::new()
-            .with_system(size_scaling.system())
-            .with_system(position_translation.system()),
-    )
-    .add_plugins(DefaultPlugins);
-    #[cfg(target_arch = "wasm32")]
-    app.add_plugin(bevy_webgl2::WebGL2Plugin);
-    app.run();
+    App::new()
+        .insert_resource(WindowDescriptor {
+            title: "Snake!".to_owned(),
+            width: WINDOW_WIDTH,
+            height: WINDOW_HEIGHT,
+            ..Default::default()
+        })
+        // .insert_resource(ClearColor(CLEAR_COLOR))
+        .add_startup_system(setup)
+        .add_plugin(snake::SnakePlugin)
+        .add_plugin(food::FoodPlugin)
+        .add_system_set_to_stage(
+            CoreStage::PostUpdate,
+            SystemSet::new()
+                .with_system(size_scaling)
+                .with_system(position_translation),
+        )
+        .add_plugins(DefaultPlugins)
+        .run();
 }
 
-fn setup(mut commands: Commands, mut color_materials: ResMut<Assets<ColorMaterial>>) {
+fn setup(mut commands: Commands) {
     commands.spawn_bundle(OrthographicCameraBundle::new_2d());
-    let head_material = color_materials.add(HEAD_COLOR.into());
-    let food_material = color_materials.add(FOOD_COLOR.into());
-    let tail_material = color_materials.add(TAIL_COLOR.into());
-    commands.insert_resource(Materials {
-        head_material,
-        food_material,
-        tail_material,
-    })
 }
 
 fn size_scaling(windows: Res<Windows>, mut query: Query<(&Size, &mut Sprite)>) {
     let window = windows.get_primary().unwrap();
     for (size, mut sprite) in query.iter_mut() {
-        sprite.size = Vec2::new(
+        sprite.custom_size = Some(Vec2::new(
             size.width / ARENA_WIDTH as f32 * window.width() as f32,
             size.height / ARENA_HEIGHT as f32 * window.height() as f32,
-        );
+        ));
     }
 }
 

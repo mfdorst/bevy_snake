@@ -1,4 +1,6 @@
-#[derive(Default, Copy, Clone, Eq, PartialEq, Hash)]
+use bevy::prelude::*;
+
+#[derive(Default, Copy, Clone, Eq, PartialEq, Hash, Component)]
 pub struct Position {
     pub x: i32,
     pub y: i32,
@@ -10,6 +12,7 @@ impl Position {
     }
 }
 
+#[derive(Component)]
 pub struct Size {
     pub width: f32,
     pub height: f32,
@@ -24,11 +27,13 @@ impl Size {
     }
 }
 
+#[derive(Component)]
 pub struct Food;
 
+#[derive(Component)]
 pub struct TailSegment;
 
-#[derive(PartialEq, Copy, Clone)]
+#[derive(PartialEq, Copy, Clone, Component)]
 pub enum Direction {
     Right,
     Left,

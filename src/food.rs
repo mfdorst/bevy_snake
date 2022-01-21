@@ -1,7 +1,6 @@
 use crate::{
     components::{Food, Position, Size},
     consts::*,
-    resources::Materials,
 };
 use bevy::{core::FixedTimestep, prelude::*};
 use rand::Rng;
@@ -9,20 +8,23 @@ use rand::Rng;
 pub struct FoodPlugin;
 
 impl Plugin for FoodPlugin {
-    fn build(&self, app: &mut AppBuilder) {
+    fn build(&self, app: &mut App) {
         app.add_system_set(
             SystemSet::new()
                 .with_run_criteria(FixedTimestep::step(FOOD_RESPAWN_TIME))
-                .with_system(spawn_food.system()),
+                .with_system(spawn_food),
         );
     }
 }
 
-fn spawn_food(mut commands: Commands, materials: Res<Materials>) {
+fn spawn_food(mut commands: Commands) {
     let mut rng = rand::thread_rng();
     commands
         .spawn_bundle(SpriteBundle {
-            material: materials.food_material.clone(),
+            sprite: Sprite {
+                color: FOOD_COLOR,
+                ..Default::default()
+            },
             ..Default::default()
         })
         .insert(Food)
